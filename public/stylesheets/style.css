@@ -1,0 +1,21 @@
+body {
+  padding: 50px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a { color: #00B7FF; }
+
+.match { background-color: #c6c6c6; box-shadow: 13px 10px 13px -5px rgba(0,0,0,0.5); margin: 2% auto; }
+.match-content { padding: 2%; }
+
+.score { height: 25px; width: 100%; }
+.score2 { background-color: #ad0202; color: #fff; }
+.score3 { background-color: #de0202; color: #fff; }
+.score4 { background-color: #964b02; color: #fff; }
+
+/* Utils.js Syntax Highlight */
+.string  { color: green; }
+.number  { color: darkorange; }
+.boolean { color: blue; }
+.null    { color: magenta; }
+.key     { color: red; }

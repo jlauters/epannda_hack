@@ -1,0 +1,22 @@
+extends layout
+
+block content
+  h1= title
+  p Found Matched terms for #{title}
+
+
+  block matches
+
+      div iDigBio Document Count:
+      div= doc_count
+
+      div matched names count:
+      div= matched_names_count
+
+      h3 LEGEND
+      div
+          div(class='matched_name', style={width: '20px', height: '20px', display: 'inline-block'})
+          span PBDB matched with OpenTree record              
+
+      h4 MATCHED OBJECTS #{object_count}
+      div!= matched_objects
