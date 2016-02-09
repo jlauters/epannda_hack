@@ -6,17 +6,25 @@ module.exports = function(app, config) {
     var idigbio = require('../controllers/idigbio')(app, config);
     var bhl     = require('../controllers/bhl')(app, config);
 
-    // placeholder or main process kickoff?
-    app.route('/').get(home.index);
+    app.get('/', home.index);
   
     // PBDB Search
-    app.route('/pbdb_lookup/:taxon').get(pbdb.taxon_lookup);
+    app.get('/pbdb_lookup/:taxon', pbdb.taxon_lookup);
  
     // IDigBio Search for scientific name and state province ( potentially locality )
-    app.route('/idigbio_lookup/:scientific_name/:state_province').get(idigbio.search);
+    app.get('/idigbio_lookup/:scientific_name/:state_province', idigbio.search);
 
     // BHL Search
-    app.route('/bhl_title/:title').get(bhl.title_search);
-    app.route('/bhl_title_items/:title_id').get(bhl.title_items);
-    app.route('/bhl_item_meta/:item_id').get(bhl.item_metadata);
+    app.get('/bhl_title/:title', bhl.title_search);
+    app.get('/bhl_title_items/:title_id', bhl.title_items);
+    app.get('/bhl_item_meta/:item_id', bhl.item_metadata);
+
+    // 404 catch
+    app.use(function(err, req, res, callback) {
+        if(err) { callback( err ); }
+        else {
+            res.status(404).json({"error":"Not Found"});
+            callback();
+        }
+    });
 };

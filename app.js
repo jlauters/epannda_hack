@@ -1,11 +1,15 @@
-
-var express = require('express')
-  , path = require('path')
-  , config = require('./config/config');
+var express = require('express'),
+    path    = require('path'),
+    config  = require('./config/config');
 
 var app = express();
-app.set('vew engine', 'jade');
-app.use(express.static(path.join(__dirname, 'public')));
+app.configure(function() {
+  app.set('views', __dirname + '/views');
+  app.set('view engine', 'jade');
+  app.use(express.favicon());
+  app.use(express.bodyParser());
+  app.use(express.static(path.join(__dirname, 'public')));
+});
 
 require('./config/routes')(app, config);
 
@@ -18,5 +22,4 @@ module.exports = {
     app: app,
     server: server,
     config: config
-}
-
+};
