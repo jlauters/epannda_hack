@@ -16,8 +16,8 @@ module.exports = function(app, config) {
 
     // BHL Search
     app.get('/bhl_title/:title', bhl.title_search);
-    app.get('/bhl_title_items/:title_id', bhl.title_items);
-    app.get('/bhl_item_meta/:item_id', bhl.item_metadata);
+    app.get('/bhl_title_items/:title_id/:volume/:year', bhl.title_items);
+    app.get('/bhl_item_meta/:item_id/:pb_title', bhl.item_metadata);
 
     // 404 catch
     app.use(function(err, req, res, callback) {

@@ -23,21 +23,25 @@ module.exports = function(app,config) {
                     var bio_results = JSON.parse( body );
                     if("ok" == bio_results.Status) {
                         for( var bidx in bio_results.Result ) {
-                            console.log( 'BHL Title ID: ' + bio_results.Result[bidx].TitleID );
-                            console.log( 'BHL Full Title: ' + bio_results.Result[bidx].FullTitle );
-                            console.log( 'PB Title: ' + title );
 
-                            // Data sanitization
-                            var bhl_title = bio_results.Result[bidx].FullTitle.replace('.', '');
+                            (function(bidx) {
 
-                            if(title == bhl_title) {
-                                titleID = bio_results.Result[bidx].TitleID;
-                            } 
+                                // Data sanitization
+                                var bhl_title = bio_results.Result[bidx].FullTitle.replace('.', '');
+
+                                if(title == bhl_title) {
+                                    titleID = bio_results.Result[bidx].TitleID;
+                                    return titleID;
+                                } 
+
+                            })(bidx);
+
                         }
+
+                        res.setHeader("Content-Type", "application/json");
+                        res.send('{"titleID": "' + titleID + '" }');
+
                     }
-  
-                    res.setHeader("Content-Type", "application/json");
-                    res.send('{"titleID": "' + titleID + '" }');
                 }
             });
         },
@@ -45,6 +49,9 @@ module.exports = function(app,config) {
         title_items: function(req, res, callback) {
   
             var title_id = req.params.title_id;
+            var volume   = req.params.volume;
+            var year     = req.params.year;
+
             var bio_api_key = '5415e6dc-c430-4de8-8346-6d6091d08edb';
 
             var bio_options = {
@@ -54,17 +61,26 @@ module.exports = function(app,config) {
             request.get(bio_options, function(error, response, body) {
                 if(!error && response.statusCode == 200) {
 
-                    var itemID = '';
+                    var itemID = 0;
                     var title_items = JSON.parse( body );
                     if("ok" == title_items.Status) {
                         for( var tidx in title_items.Result) {
-                            console.log( title_items.Result[tidx] );
+
+                            (function(tidx) {
+
+                                if( 0 < title_items.Result[tidx].Year.indexOf( year ) ||
+                                    0 < title_items.Result[tidx].Volume.indexOf( volume ) ) {
+
+                                    itemID = title_items.Result[tidx].ItemID;
+                                    return itemID;
+                                }
+
+                            })(tidx);
                         }
+
+                        res.setHeader("Content-Type", "application/json");
+                        res.send('{"itemID": "' + itemID + '" }');
                     }
-
-                    res.setHeader("Content-Type", "application/json");
-                    res.send('{"itemID": "' + itemID + '" }');
-
                 }
             });
 
@@ -75,6 +91,8 @@ module.exports = function(app,config) {
             // TODO: We need PBDB title to match against OCR Text
 
             var item_id = req.params.item_id;
+            var pb_title = req.params.pb_title;
+
             var bio_api_key = '5415e6dc-c430-4de8-8346-6d6091d08edb';
 
             var bio_options = {
@@ -87,15 +105,25 @@ module.exports = function(app,config) {
 
                     var ocr = '';
                     var item_meta = JSON.parse( body );
+                    
                     if("ok" == item_meta.Status) {
-                        for( var midx in item_meta.Result) {
-                            console.log( item_meta.Result[midx] );
+
+                        for( var pidx in item_meta.Result.Pages) {
+
+                            (function(pidx) {
+                                if(item_meta.Result.Pages[pidx].OcrText !== "") {
+                                    if(0 < item_meta.Result.Pages[pidx].OcrText.indexOf( pb_title ) ) {
+                                        ocr = item_meta.Result.Pages[pidx].OcrText;
+                                        return ocr;
+                                    }
+                                }
+                            })(pidx);
                         }
                     }
 
                     res.setHeader("Content-Type", "application/json");
-                    res.send('{"ocrText": "' + ocr + '" } ');
-
+                    res.send('{"ocrText": ' + JSON.stringify( ocr ) + ' } ');
+                    
                 }
             });
 

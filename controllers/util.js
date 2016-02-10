@@ -196,36 +196,49 @@ module.exports = {
             // match pbdb title to BHL
             function(data, callback) {
                 var pb_title = '';
-                for( var i = 0; i <= 2; i++) {
+                for( var i = 0; i <= 9; i++) {
 
-                    var pb_title = data[i].pbdb.publication;
+                    // using closure to force new scope
+                    (function(i) {
 
-                    console.log('PB Title: ' + pb_title);
+                        var oid       = data[i].pbdb.oid;
+                        var pb_title  = data[i].pbdb.publication;
+                        var pb_volume = data[i].pbdb.volume;
+                        var pb_year   = data[i].pbdb.year;
 
-                    request.get('http://localhost:3000/bhl_title/' + encodeURIComponent( pb_title ), function(err, res, body) {
+                        request.get('http://localhost:3000/bhl_title/' + encodeURIComponent( pb_title ), function(err, res, body) {
+                            if(!err && res.statusCode == 200) {
+                                var results = JSON.parse( body );
+                                callback(null, results.titleID, pb_volume, pb_year, pb_title );
+                            }
+                        });
+
+                   })(i);
+                }
+            },
+            function(title_id, volume, year, pb_title, callback) {
+
+                request.get('http://localhost:3000/bhl_title_items/' + title_id + '/' + volume + '/' + year, function(err, res, body) {
+                    if(!err && res.statusCode == 200) {
+                        var results = JSON.parse( body );
+                        callback(null, results.itemID, pb_title);
+                    }
+                });
+            },
+            function(item_id, pb_title, callback) {
+
+                if(item_id) {
+                    request.get('http://localhost:3000/bhl_item_meta/' + item_id + '/' + pb_title, function(err, res, body) {
                         if(!err && res.statusCode == 200) {
                             var results = JSON.parse( body );
-                            callback(null, results.title_id );
+                          
+                            // TODO: Better Join This Data to PBDB and iDigBio matched object
+                            // ----- Do advanced scoring for better match confidence
+                            console.log('Returned OCR Text');
+                            console.log(results.ocrText);
                         }
                     });
                 }
-            },
-            function(title_id, callback) {
-                request.get('http://localhost:3000/bhl_title_items/' + title_id, function(err, res, body) {
-                    if(!err && res.statusCode == 200) {
-                        var results = JSON.parse( body );
-                        var item_id = results.Result.ItemID;
-                        callback(null, item_id);
-                    }
-                });
-            },
-            function(item_id, callback) {
-                request.get('http://localhost:3000/bhl_item_meta/' + item_id, function(err, res, body) {
-                    if(!err && res.statusCode == 200) {
-                        var results = JSON.parse( body );
-                        console.log('now we need to look through OCR Results to match more iDigBIo Fields'); 
-                    }
-                });
             }
         ], function(error, result) {
             if(error) {
